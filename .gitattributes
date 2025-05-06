@@ -1,0 +1,1 @@
+modelo_transformers/model.safetensors filter=lfs diff=lfs merge=lfs -text

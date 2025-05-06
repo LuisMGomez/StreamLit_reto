@@ -3,10 +3,11 @@ import joblib
 import pandas as pd
 import csv
 import plotly.express as px
+from transformers import pipeline
 
 @st.cache_resource
 def load_model():
-    return joblib.load("clasificador_temas_es.pkl")
+    return pipeline("text-classification", model="modelo_transformers", tokenizer="modelo_transformers")
 
 def detectar_delimitador(uploaded_file):
     contenido = uploaded_file.read().decode('utf-8')
@@ -19,11 +20,18 @@ def detectar_delimitador(uploaded_file):
     return delimitador
 
 def procesar(df, opcion, modelo):
+    # Cargar el LabelEncoder
+    le = joblib.load("modelo_transformers/label_encoder.pkl")  # Cargar el encoder
+
     resultados = []
     for text in df[opcion]:
-        model_outputs = modelo.predict([text])
-        resultados.append(model_outputs[0])  # Ajustado para evitar TypeError
-    df['prediccion'] = resultados
+        model_outputs = modelo(text)  # Obtener la predicción del modelo
+        # Obtener la etiqueta (label) del resultado y convertirla en texto con el LabelEncoder
+        prediccion_numerica = int(model_outputs[0]['label'].split('_')[1])  # Extraer el número de la etiqueta
+        etiqueta_texto = le.inverse_transform([prediccion_numerica])[0]  # Convertir la etiqueta numérica a texto
+        resultados.append(etiqueta_texto)  # Guardar la etiqueta en texto
+
+    df['prediccion'] = resultados  # Añadir la predicción al DataFrame
     return df
 
 def mostrar_distribucion_por_categoria(df: pd.DataFrame, columna: str, categoria_filtro: str = "Todas"):
@@ -47,10 +55,7 @@ def mostrar_distribucion_por_categoria(df: pd.DataFrame, columna: str, categoria
     fig = px.bar(conteo, x=columna, y='Cantidad', color=columna, text='Cantidad')
     st.plotly_chart(fig, use_container_width=True)
 
-
-
 def set_bg_hack_url():
-
     st.markdown("""
         <style>
         .stApp {
@@ -62,12 +67,10 @@ def set_bg_hack_url():
         </style>
     """, unsafe_allow_html=True)
 
-
 def main():
     st.title("Clasificador de Noticias")
 
     set_bg_hack_url()
-
 
     uploaded_file = st.file_uploader(" Elige un fichero CSV", type="csv")
     if uploaded_file is not None:
