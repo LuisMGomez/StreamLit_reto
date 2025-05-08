@@ -75,9 +75,34 @@ def procesar(df, opcion, modelo):
     return df
 
 
+def set_bg_hack_url():
+    st.markdown("""
+        <style>
+        .stApp {
+            background: 
+                linear-gradient(
+                    to right,
+                    rgba(255, 255, 255, 0.0) 0%,
+                    rgba(255, 255, 255, 0.4) 15%,
+                    rgba(255, 255, 255, 0.85) 20%,
+                    rgba(255, 255, 255, 1.0) 30%,
+                    rgba(255, 255, 255, 1.0) 70%,
+                    rgba(255, 255, 255, 0.85) 80%,
+                    rgba(255, 255, 255, 0.4) 85%,
+                    rgba(255, 255, 255, 0.0) 100%
+                ),
+                url("https://images.unsplash.com/photo-1504711434969-e33886168f5c?fit=crop&w=1600&q=80") no-repeat center center fixed;
+            background-size: cover;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+
 def main():
     st.title("Clasificador de Noticias")
     
+    set_bg_hack_url()
+
     # Carga del archivo CSV
     uploaded_file = st.file_uploader("Elige un archivo CSV:", type="csv")
 
